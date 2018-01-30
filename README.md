@@ -1,6 +1,17 @@
 ## OPEN API file tester written in Go.
 
-Runs examples and allows before and after middlewares.
+Read openapi examples and allows before and after middlewares.
+
+[![License MIT](https://img.shields.io/npm/l/express.svg)](http://opensource.org/licenses/MIT)
+[![Build Status](https://travis-ci.org/jimmy-go/openapi-tester.svg?branch=master)](https://travis-ci.org/jimmy-go/openapi-tester)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jimmy-go/openapi-tester)](https://goreportcard.com/report/github.com/jimmy-go/openapi-tester)
+[![GoDoc](http://godoc.org/github.com/jimmy-go/openapi-tester?status.png)](http://godoc.org/github.com/jimmy-go/openapi-tester)
+[![Coverage Status](https://coveralls.io/repos/github/jimmy-go/openapi-tester/badge.svg?branch=master)](https://coveralls.io/github/jimmy-go/openapi-tester?branch=master)
+
+### Install:
+```
+go get gopkg.in/jimmy-go/openapi-tester.v0
+```
 
 ### License:
 
