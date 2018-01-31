@@ -16,6 +16,21 @@ type Path struct {
 	Parameters []*Parameters `json:"parameters,omitempty"`
 }
 
+// HasMethod return true if path has method.
+func (p *Path) HasMethod(method string) bool {
+	switch method {
+	case "GET":
+		return p.Get != nil
+	case "POST":
+		return p.Post != nil
+	case "PUT":
+		return p.Put != nil
+	case "DELETE":
+		return p.Delete != nil
+	}
+	return false
+}
+
 // PathMethod type.
 type PathMethod struct {
 	Tags        []string             `json:"tags"`
