@@ -1,34 +1,53 @@
 package openapitester
 
+import (
+	"errors"
+	"strings"
+)
+
 // API type contains all swagger info.
 type API struct {
-	Host        string                 `json:"host"`
-	Paths       map[string]*Path       `json:"paths"`
-	Definitions map[string]*Definition `json:"definitions"`
+	Host        string                            `json:"host"`
+	Paths       map[string]map[string]*PathMethod `json:"paths"`
+	Definitions map[string]*Definition            `json:"definitions"`
 }
 
-// Path type.
-type Path struct {
-	Get        *PathMethod   `json:"get,omitempty"`
-	Post       *PathMethod   `json:"post,omitempty"`
-	Put        *PathMethod   `json:"put,omitempty"`
-	Delete     *PathMethod   `json:"delete,omitempty"`
-	Parameters []*Parameters `json:"parameters,omitempty"`
-}
-
-// HasMethod return true if path has method.
-func (p *Path) HasMethod(method string) bool {
-	switch method {
-	case "GET":
-		return p.Get != nil
-	case "POST":
-		return p.Post != nil
-	case "PUT":
-		return p.Put != nil
-	case "DELETE":
-		return p.Delete != nil
+// Search searchs method and request uri skipping url params as '/path/*/something'.
+func (a *API) Search(method, requestURI string) (*PathMethod, error) {
+	var pat map[string]*PathMethod
+	for k, v := range a.Paths {
+		kc := removeVars(k)
+		rc := removeVars(requestURI)
+		if kc == rc {
+			pat = v
+		}
 	}
-	return false
+	m, ok := pat[strings.ToUpper(method)]
+	if !ok {
+		return nil, errors.New("method not found")
+	}
+	return m, nil
+}
+
+// Examples returns examples bodies if resource exists.
+func (a *API) Examples(method, requestURI string) ([]string, error) {
+	pm, err := a.Search(method, requestURI)
+	if err != nil {
+		return nil, err
+	}
+	var res []string
+	for _, x := range pm.Parameters {
+		ref := strings.Replace(x.Schema.Ref, "#/definitions/", "", -1)
+		def, ok := a.Definitions[ref]
+		if !ok {
+			continue
+		}
+		res = append(res, def.Example)
+	}
+	if len(res) == 0 {
+		return nil, errors.New("example not found")
+	}
+	return res, nil
 }
 
 // PathMethod type.
@@ -37,13 +56,13 @@ type PathMethod struct {
 	Summary     string               `json:"summary"`
 	Description string               `json:"description"`
 	Consumes    []string             `json:"consumes,omitempty"`
-	Parameters  []Parameters         `json:"parameters"`
+	Parameters  []Parameter          `json:"parameters"`
 	Responses   map[string]*Response `json:"responses"`
 	Security    []interface{}        `json:"security,omitempty"` // TODO;
 }
 
-// Parameters type.
-type Parameters struct {
+// Parameter  type.
+type Parameter struct {
 	Name     string  `json:"name"`
 	In       string  `json:"in"`
 	Required bool    `json:"required"`
