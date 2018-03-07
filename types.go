@@ -6,7 +6,7 @@ type PathMethod struct {
 	Summary     string                   `json:"summary"`
 	Description string                   `json:"description"`
 	Consumes    []string                 `json:"consumes,omitempty"`
-	Parameters  []Parameter              `json:"parameters,omitempty"`
+	Parameters  []*Parameter             `json:"parameters,omitempty"`
 	Responses   map[string]*Response     `json:"responses,omitempty"`
 	Security    []map[string]interface{} `json:"security,omitempty"` // TODO;
 }

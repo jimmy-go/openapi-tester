@@ -1,6 +1,7 @@
 package openapitester
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -8,9 +9,9 @@ import (
 
 // API type contains all swagger info.
 type API struct {
-	Host        string                            `json:"host"`
-	Paths       map[string]map[string]interface{} `json:"paths"`
-	Definitions map[string]*Definition            `json:"definitions"`
+	Host        string                                `json:"host"`
+	Paths       map[string]map[string]json.RawMessage `json:"paths"`
+	Definitions map[string]*Definition                `json:"definitions"`
 }
 
 // Search searchs method and request uri skipping url params as '/path/*/something'.
@@ -20,11 +21,14 @@ func (a *API) Search(method, requestURI string) (*PathMethod, error) {
 		rc := removeVars(requestURI)
 		if kc == rc {
 			for method2, v := range uris {
-				p, ok := v.(*PathMethod)
-				if !ok {
-					continue
-				}
 				if strings.ToUpper(method2) == strings.ToUpper(method) {
+					if method2 == "parameters" {
+						continue
+					}
+					var p *PathMethod
+					if err := json.Unmarshal(v, &p); err != nil {
+						return nil, err
+					}
 					return p, nil
 				}
 			}
@@ -40,7 +44,11 @@ func (a *API) Examples(method, requestURI string) ([]string, error) {
 		return nil, err
 	}
 	var res []string
-	for _, x := range pm.Parameters {
+	for i := range pm.Parameters {
+		x := pm.Parameters[i]
+		if x.Schema == nil {
+			continue
+		}
 		ref := strings.Replace(x.Schema.Ref, "#/definitions/", "", -1)
 		def, ok := a.Definitions[ref]
 		if !ok {

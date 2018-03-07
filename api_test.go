@@ -1,6 +1,7 @@
 package openapitester
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,9 +9,9 @@ import (
 
 func TestSearch(t *testing.T) {
 	oapi := &API{
-		Paths: map[string]map[string]interface{}{
-			"/me/{userID}/profile": map[string]interface{}{
-				"POST": &PathMethod{},
+		Paths: map[string]map[string]json.RawMessage{
+			"/me/{userID}/profile": map[string]json.RawMessage{
+				"POST": json.RawMessage(` { "tags": [ "Schedules" ], "summary": "Add schedule array to route.", "consumes": [], "parameters": [ { "name": "Authorization", "in": "header", "required": false, "type": "string" }, { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/RequestSchedule" } } ], "responses": { "200": { "description": "Status 200", "schema": { "$ref": "#/definitions/ScheduleCreated" } } }, "security": [ { "JWT": [] } ] } `),
 			},
 		},
 	}
@@ -25,17 +26,9 @@ func TestSearch(t *testing.T) {
 
 func TestExamples(t *testing.T) {
 	oapi := &API{
-		Paths: map[string]map[string]interface{}{
-			"/login": map[string]interface{}{
-				"POST": &PathMethod{
-					Parameters: []Parameter{
-						Parameter{
-							Schema: &Schema{
-								Ref: "#/definitions/Login",
-							},
-						},
-					},
-				},
+		Paths: map[string]map[string]json.RawMessage{
+			"/login": map[string]json.RawMessage{
+				"POST": json.RawMessage(` { "tags": [ "Schedules" ], "summary": "Add schedule array to route.", "consumes": [], "parameters": [ { "name": "Authorization", "in": "header", "required": false, "type": "string" }, { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/Login" } } ], "responses": { "200": { "description": "Status 200", "schema": { "$ref": "#/definitions/ScheduleCreated" } } }, "security": [ { "JWT": [] } ] } `),
 			},
 		},
 		Definitions: map[string]*Definition{
@@ -47,6 +40,9 @@ func TestExamples(t *testing.T) {
 	ss, err := oapi.Examples("post", "/login")
 	assert.Nil(t, err)
 	assert.NotNil(t, ss)
+	if err != nil {
+		return
+	}
 
 	exp := `{"username":"alice","password":"none"}`
 	actual := ss[0]
