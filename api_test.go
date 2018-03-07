@@ -8,8 +8,8 @@ import (
 
 func TestSearch(t *testing.T) {
 	oapi := &API{
-		Paths: map[string]map[string]*PathMethod{
-			"/me/{userID}/profile": map[string]*PathMethod{
+		Paths: map[string]map[string]interface{}{
+			"/me/{userID}/profile": map[string]interface{}{
 				"POST": &PathMethod{},
 			},
 		},
@@ -25,8 +25,8 @@ func TestSearch(t *testing.T) {
 
 func TestExamples(t *testing.T) {
 	oapi := &API{
-		Paths: map[string]map[string]*PathMethod{
-			"/login": map[string]*PathMethod{
+		Paths: map[string]map[string]interface{}{
+			"/login": map[string]interface{}{
 				"POST": &PathMethod{
 					Parameters: []Parameter{
 						Parameter{

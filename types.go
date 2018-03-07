@@ -7,19 +7,26 @@ import (
 
 // API type contains all swagger info.
 type API struct {
-	Host        string                            `json:"host"`
-	Paths       map[string]map[string]*PathMethod `json:"paths"`
+	Host string `json:"host"`
+	// Paths       map[string]map[string]*PathMethod `json:"paths"`
+	Paths       map[string]map[string]interface{} `json:"paths"`
 	Definitions map[string]*Definition            `json:"definitions"`
 }
 
 // Search searchs method and request uri skipping url params as '/path/*/something'.
 func (a *API) Search(method, requestURI string) (*PathMethod, error) {
-	var pat map[string]*PathMethod
-	for k, v := range a.Paths {
+	pat := make(map[string]*PathMethod)
+	for k, uris := range a.Paths {
 		kc := removeVars(k)
 		rc := removeVars(requestURI)
 		if kc == rc {
-			pat = v
+			for method, v := range uris {
+				p, ok := v.(*PathMethod)
+				if !ok {
+					continue
+				}
+				pat[method] = p
+			}
 		}
 	}
 	m, ok := pat[strings.ToUpper(method)]
@@ -52,13 +59,13 @@ func (a *API) Examples(method, requestURI string) ([]string, error) {
 
 // PathMethod type.
 type PathMethod struct {
-	Tags        []string             `json:"tags"`
-	Summary     string               `json:"summary"`
-	Description string               `json:"description"`
-	Consumes    []string             `json:"consumes,omitempty"`
-	Parameters  []Parameter          `json:"parameters"`
-	Responses   map[string]*Response `json:"responses"`
-	Security    []interface{}        `json:"security,omitempty"` // TODO;
+	Tags        []string                 `json:"tags"`
+	Summary     string                   `json:"summary"`
+	Description string                   `json:"description"`
+	Consumes    []string                 `json:"consumes,omitempty"`
+	Parameters  []Parameter              `json:"parameters,omitempty"`
+	Responses   map[string]*Response     `json:"responses,omitempty"`
+	Security    []map[string]interface{} `json:"security,omitempty"` // TODO;
 }
 
 // Parameter  type.
