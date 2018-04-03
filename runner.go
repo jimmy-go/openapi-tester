@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func defaultDo(c *http.Client, method, uri, payload string) ([]byte, int, error) {
@@ -31,17 +32,19 @@ func defaultDo(c *http.Client, method, uri, payload string) ([]byte, int, error)
 
 // Runner type.
 type Runner struct {
-	API    *API
-	Client *http.Client
-	DoFn   func(c *http.Client, method, uri, payload string) ([]byte, int, error)
+	API        *API
+	Client     *http.Client
+	DoFn       func(c *http.Client, method, uri, payload string) ([]byte, int, error)
+	ReplaceMap map[string]func(string) string
 }
 
 // NewRunner returns a new runner that consumes oapi.
 func NewRunner(oapi *API, client *http.Client, fnMap map[string]func(string) string) (*Runner, error) {
 	ru := &Runner{
-		API:    oapi,
-		Client: client,
-		DoFn:   defaultDo,
+		API:        oapi,
+		Client:     client,
+		DoFn:       defaultDo,
+		ReplaceMap: fnMap,
 	}
 	return ru, nil
 }
@@ -60,24 +63,41 @@ func (r *Runner) Exec() ([]*Report, error) {
 		log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
 			_ = pat
+			// Get example payloads.
 			examples, err := r.API.Examples(method, uri)
 			if err != nil {
 				return nil, err
 			}
-			payload := examples[0]
+
+			// Replace Request URI and payload vars.
+			payload := applyReplace(examples[0], r.ReplaceMap)
+			uri = applyReplace(uri, r.ReplaceMap)
+
+			// Do http request.
 			res, code, err := r.DoFn(r.Client, method, uri, payload)
 			if err != nil {
 				return nil, err
 			}
 			log.Printf("Exec : res : %s", res)
 
+			// Replace body response.
+			responseBody := applyReplace(string(res), r.ReplaceMap)
+
 			re := &Report{
 				Code:     code,
 				Payload:  []byte(payload),
-				Response: res,
+				Response: []byte(responseBody),
 			}
 			list = append(list, re)
 		}
 	}
 	return list, nil
+}
+
+func applyReplace(s string, fnMap map[string]func(string) string) string {
+	for key, fn := range fnMap {
+		ns := strings.Replace(s, key, fn(s), -1)
+		s = ns
+	}
+	return s
 }
