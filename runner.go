@@ -61,6 +61,16 @@ type Report struct {
 	Error    string `json:"error"`
 }
 
+var (
+	validMethods = map[string]bool{
+		"GET":    true,
+		"POST":   true,
+		"PUT":    true,
+		"PATCH":  true,
+		"DELETE": true,
+	}
+)
+
 // Exec runs a query against every endpoint registered.
 func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 	var list []*Report
@@ -68,6 +78,10 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 		log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
 			_ = pat
+			if _, ok := validMethods[method]; !ok {
+				log.Printf("Exec : invalid method : %s uri : %s", method, uri)
+				continue
+			}
 
 			var payload string
 			// Get example payloads ONLY for GET methods.
