@@ -8,10 +8,13 @@ import (
 	"strings"
 )
 
-func defaultDo(c *http.Client, method, uri, payload string) ([]byte, int, error) {
+func defaultDo(c *http.Client, method, uri, payload string, headers map[string]string) ([]byte, int, error) {
 	req, err := http.NewRequest(method, uri, bytes.NewBufferString(payload))
 	if err != nil {
 		return nil, 0, err
+	}
+	for k, v := range headers {
+		req.Header.Set(k, v)
 	}
 	resp, err := c.Do(req)
 	if err != nil {
@@ -34,7 +37,7 @@ func defaultDo(c *http.Client, method, uri, payload string) ([]byte, int, error)
 type Runner struct {
 	API        *API
 	Client     *http.Client
-	DoFn       func(c *http.Client, method, uri, payload string) ([]byte, int, error)
+	DoFn       func(c *http.Client, method, uri, payload string, headers map[string]string) ([]byte, int, error)
 	ReplaceMap map[string]func(string) string
 }
 
@@ -58,7 +61,7 @@ type Report struct {
 }
 
 // Exec runs a query against every endpoint registered.
-func (r *Runner) Exec() ([]*Report, error) {
+func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 	var list []*Report
 	for uri, pats := range r.API.Paths {
 		log.Printf("Exec : %s", uri)
@@ -80,7 +83,7 @@ func (r *Runner) Exec() ([]*Report, error) {
 			payload = applyReplace(payload, r.ReplaceMap)
 
 			// Do http request.
-			res, code, err := r.DoFn(r.Client, method, fullURL, payload)
+			res, code, err := r.DoFn(r.Client, method, fullURL, payload, headers)
 			if err != nil {
 				return nil, err
 			}
