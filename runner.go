@@ -76,11 +76,11 @@ func (r *Runner) Exec() ([]*Report, error) {
 			}
 
 			// Replace Request URI and payload vars.
-			uri = applyReplace(uri, r.ReplaceMap)
+			fullURL := r.API.Domain() + applyReplace(uri, r.ReplaceMap)
 			payload = applyReplace(payload, r.ReplaceMap)
 
 			// Do http request.
-			res, code, err := r.DoFn(r.Client, method, uri, payload)
+			res, code, err := r.DoFn(r.Client, method, fullURL, payload)
 			if err != nil {
 				return nil, err
 			}

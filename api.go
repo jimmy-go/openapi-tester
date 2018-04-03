@@ -12,6 +12,19 @@ type API struct {
 	Host        string                                `json:"host"`
 	Paths       map[string]map[string]json.RawMessage `json:"paths"`
 	Definitions map[string]*Definition                `json:"definitions"`
+	Schemes     []string                              `json:"schemes"`
+}
+
+// Domain returns the scheme and host. It defaults to https if present.
+func (a *API) Domain() string {
+	var scheme string
+	for _, s := range a.Schemes {
+		if s == "https" {
+			return s + "://" + a.Host
+		}
+		scheme = s
+	}
+	return scheme + "://" + a.Host
 }
 
 // Search searchs method and request uri skipping url params as '/path/*/something'.
