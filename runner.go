@@ -87,10 +87,9 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			// Get example payloads ONLY for GET methods.
 			if strings.ToUpper(method) != "GET" {
 				examples, err := r.API.Examples(method, uri)
-				if err != nil {
-					return nil, err
+				if err == nil {
+					payload = examples[0]
 				}
-				payload = examples[0]
 			}
 
 			// Replace Request URI and payload vars.
@@ -103,7 +102,7 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			if err != nil {
 				errMsg = err.Error()
 			}
-			log.Printf("Exec : res : %s", res)
+			// log.Printf("Exec : res : %s", res)
 
 			// Replace body response.
 			responseBody := applyReplace(string(res), r.ReplaceMap)
