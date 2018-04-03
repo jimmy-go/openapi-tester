@@ -78,7 +78,7 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 		log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
 			_ = pat
-			if _, ok := validMethods[method]; !ok {
+			if _, ok := validMethods[strings.ToUpper(method)]; !ok {
 				log.Printf("Exec : invalid method : %s uri : %s", method, uri)
 				continue
 			}
