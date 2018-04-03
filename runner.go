@@ -63,15 +63,20 @@ func (r *Runner) Exec() ([]*Report, error) {
 		log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
 			_ = pat
-			// Get example payloads.
-			examples, err := r.API.Examples(method, uri)
-			if err != nil {
-				return nil, err
+
+			var payload string
+			// Get example payloads ONLY for GET methods.
+			if strings.ToUpper(method) != "GET" {
+				examples, err := r.API.Examples(method, uri)
+				if err != nil {
+					return nil, err
+				}
+				payload = examples[0]
 			}
 
 			// Replace Request URI and payload vars.
-			payload := applyReplace(examples[0], r.ReplaceMap)
 			uri = applyReplace(uri, r.ReplaceMap)
+			payload = applyReplace(payload, r.ReplaceMap)
 
 			// Do http request.
 			res, code, err := r.DoFn(r.Client, method, uri, payload)
@@ -95,6 +100,9 @@ func (r *Runner) Exec() ([]*Report, error) {
 }
 
 func applyReplace(s string, fnMap map[string]func(string) string) string {
+	if s == "" {
+		return ""
+	}
 	for key, fn := range fnMap {
 		ns := strings.Replace(s, key, fn(s), -1)
 		s = ns
