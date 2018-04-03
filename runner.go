@@ -52,6 +52,7 @@ func NewRunner(oapi *API, client *http.Client, fnMap map[string]func(string) str
 // Report type.
 type Report struct {
 	Code     int    `json:"code"`
+	Method   string `json:"method"`
 	Payload  []byte `json:"payload"`
 	Response []byte `json:"response"`
 }
@@ -90,6 +91,7 @@ func (r *Runner) Exec() ([]*Report, error) {
 
 			re := &Report{
 				Code:     code,
+				Method:   method,
 				Payload:  []byte(payload),
 				Response: []byte(responseBody),
 			}
