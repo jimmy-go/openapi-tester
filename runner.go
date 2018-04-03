@@ -48,9 +48,9 @@ func NewRunner(oapi *API, client *http.Client, fnMap map[string]func(string) str
 
 // Report type.
 type Report struct {
-	Code     int
-	Payload  []byte
-	Response []byte
+	Code     int    `json:"code"`
+	Payload  []byte `json:"payload"`
+	Response []byte `json:"response"`
 }
 
 // Exec runs a query against every endpoint registered.
