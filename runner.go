@@ -58,6 +58,7 @@ type Report struct {
 	Method   string `json:"method"`
 	Payload  []byte `json:"payload"`
 	Response []byte `json:"response"`
+	Error    string `json:"error"`
 }
 
 // Exec runs a query against every endpoint registered.
@@ -83,9 +84,10 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			payload = applyReplace(payload, r.ReplaceMap)
 
 			// Do http request.
+			var errMsg string
 			res, code, err := r.DoFn(r.Client, method, fullURL, payload, headers)
 			if err != nil {
-				return nil, err
+				errMsg = err.Error()
 			}
 			log.Printf("Exec : res : %s", res)
 
@@ -97,6 +99,7 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 				Method:   method,
 				Payload:  []byte(payload),
 				Response: []byte(responseBody),
+				Error:    errMsg,
 			}
 			list = append(list, re)
 		}
