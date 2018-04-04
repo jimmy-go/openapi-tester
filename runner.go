@@ -3,7 +3,6 @@ package openapitester
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -75,11 +74,11 @@ var (
 func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 	var list []*Report
 	for uri, pats := range r.API.Paths {
-		log.Printf("Exec : %s", uri)
+		// log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
 			_ = pat
 			if _, ok := validMethods[strings.ToUpper(method)]; !ok {
-				log.Printf("Exec : invalid method : %s uri : %s", method, uri)
+				// log.Printf("Exec : invalid method : %s uri : %s", method, uri)
 				continue
 			}
 
