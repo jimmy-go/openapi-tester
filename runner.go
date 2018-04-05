@@ -79,15 +79,16 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 	for uri, pats := range r.API.Paths {
 		// log.Printf("Exec : %s", uri)
 		for method, pat := range pats {
+			method = strings.ToUpper(method)
 			_ = pat
-			if _, ok := validMethods[strings.ToUpper(method)]; !ok {
+			if _, ok := validMethods[method]; !ok {
 				// log.Printf("Exec : invalid method : %s uri : %s", method, uri)
 				continue
 			}
 
 			var payload string
 			// Get example payloads ONLY for GET methods.
-			if strings.ToUpper(method) != "GET" {
+			if method != "GET" {
 				examples, err := r.API.Examples(method, uri)
 				if err == nil {
 					payload = examples[0]
@@ -105,7 +106,7 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			if err != nil {
 				errMsg = err.Error()
 			}
-			dms := int64(time.Since(start) / 1000 * 1000)
+			dms := int64(time.Since(start) / time.Millisecond)
 			// log.Printf("Exec : res : %s", res)
 
 			// Replace body response.
