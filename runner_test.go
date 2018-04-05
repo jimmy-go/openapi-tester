@@ -19,6 +19,7 @@ func TestRunner(t *testing.T) {
 	ru, err := NewRunner(oapi, client, fnMap)
 	assert.Nil(t, err)
 	assert.NotNil(t, ru)
-	err = ru.Exec()
+	report, err := ru.Exec(nil)
 	assert.Nil(t, err)
+	assert.NotNil(t, report)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func defaultDo(c *http.Client, method, uri, payload string, headers map[string]string) ([]byte, int, error) {
@@ -19,17 +20,17 @@ func defaultDo(c *http.Client, method, uri, payload string, headers map[string]s
 	if err != nil {
 		return nil, 0, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, 0, fmt.Errorf("invalid response: %d", resp.StatusCode)
-	}
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(resp.Body); err != nil {
-		return nil, 0, err
+		return buf.Bytes(), resp.StatusCode, err
 	}
 	if err := resp.Body.Close(); err != nil {
-		return nil, 0, err
+		return buf.Bytes(), resp.StatusCode, err
 	}
-	return buf.Bytes(), 0, nil
+	if resp.StatusCode != http.StatusOK {
+		return buf.Bytes(), resp.StatusCode, fmt.Errorf("invalid response: %d", resp.StatusCode)
+	}
+	return buf.Bytes(), resp.StatusCode, nil
 }
 
 // Runner type.
@@ -55,9 +56,11 @@ func NewRunner(oapi *API, client *http.Client, fnMap map[string]func(string) str
 type Report struct {
 	Code     int    `json:"code"`
 	Method   string `json:"method"`
+	URL      string `json:"url"`
 	Payload  []byte `json:"payload"`
 	Response []byte `json:"response"`
 	Error    string `json:"error"`
+	Duration int64  `json:"duration"`
 }
 
 var (
@@ -96,11 +99,13 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			payload = applyReplace(payload, r.ReplaceMap)
 
 			// Do http request.
+			start := time.Now()
 			var errMsg string
 			res, code, err := r.DoFn(r.Client, method, fullURL, payload, headers)
 			if err != nil {
 				errMsg = err.Error()
 			}
+			dms := int64(time.Since(start) / 1000 * 1000)
 			// log.Printf("Exec : res : %s", res)
 
 			// Replace body response.
@@ -109,9 +114,11 @@ func (r *Runner) Exec(headers map[string]string) ([]*Report, error) {
 			re := &Report{
 				Code:     code,
 				Method:   method,
+				URL:      fullURL,
 				Payload:  []byte(payload),
 				Response: []byte(responseBody),
 				Error:    errMsg,
+				Duration: dms,
 			}
 			list = append(list, re)
 		}
